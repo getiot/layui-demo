@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="stylesheet" href="layui/css/layui.css">
+    <link rel="stylesheet" href="css/style.css">
+    <title>layuiAdmin</title>
+</head>
+<body>
+<!--上方标题栏-->
+<div class="parentTop">
+    <a href="#" class="appName">GetIoT</a>
+    <div class="loginNameDiv">
+        <img class="loginIcon" src="image/logo.png">
+        <div class="loginUserInfo">
+            <span>Rudy</span><br>
+            <span>管理员</span>
+        </div>
+    </div>
+</div>
+
+<!--左侧菜单-->
+<div class="leftMenu">
+    <ul class="layui-nav layui-nav-tree"
+        lay-filter="test">
+    </ul>
+</div>
+<!--主要内容区-->
+<div class="parentMain">
+    <iframe id="iframeParent"></iframe>
+</div>
+
+<!--设置弹框-->
+<div class="dialogMenu">
+    <div id="parentChangePassword" class="dialogMenu-item">修改密码</div>
+    <div id="parentExit" class="dialogMenu-item">退出</div>
+</div>
+</body>
+</html>
+<!--修改密码弹框-->
+<script type="text/html" id="dialogChangePassword">
+    <form class="layui-form" id="dialogChangePasswordForm" style="margin-top:30px;padding-right:30px;">
+        <div class="layui-form-item">
+            <label class="layui-form-label">原密码</label>
+            <div class="layui-input-block">
+                <input type="password" name="password"
+                       placeholder="请输入原密码" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">新密码</label>
+            <div class="layui-input-block">
+                <input type="password" name="newPassword"
+                       placeholder="请输入新密码" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">确认密码</label>
+            <div class="layui-input-block">
+                <input type="password" name="okPassword"
+                       placeholder="请重复输入密码" class="layui-input">
+            </div>
+        </div>
+    </form>
+</script>
+
+<script src="js/jquery.min.js"></script>
+<script src="layui/layui.all.js"></script>
+<script src="js/common.js"></script>
+<script>
+
+    layuiModules=['layer', 'form','element'];
+
+    function mounted() {
+        //菜单列表数据
+        window.menuArray = [
+            {
+                name: "首页",
+                id: 0,
+                pid: -1,
+                url: '#/'
+            }, {
+                name: "默认展开",
+                id: 1,
+                pid: -1,
+                url: ''
+            }, {
+                name: "解决方案",
+                id: 2,
+                pid: -1,
+                url: ''
+            }, {
+                name: "表格",
+                id: 3,
+                pid: -1,
+                url: '#/table.html'
+            }, {
+                name: "多图上传",
+                id: 4,
+                pid: -1,
+                url: '#/multi_image_upload.html'
+            }, {
+                name: "富文本",
+                id: 5,
+                pid: -1,
+                url: '#/rich_editor.html'
+            }, {
+                name: "选项1",
+                id: 6,
+                pid: 1,
+                url: ''
+            }, {
+                name: "选项2",
+                id: 7,
+                pid: 1,
+                url: ''
+            }, {
+                name: "选项2-2",
+                id: 8,
+                pid: 7,
+                url: ''
+            },
+        ];
+        formatMenus();
+        //初始化类vue路由
+        initRouter();
+        //显示设置弹框
+        $('.loginNameDiv').click(function () {
+            if ($('.dialogMenu').css('display') === 'block') {
+                $('.dialogMenu').css('display', 'none');
+            } else {
+                $('.dialogMenu').css('display', 'block');
+            }
+
+        });
+        //退出登录
+        $('#parentExit').click(function () {
+            $('.dialogMenu').css('display', 'none');
+            layer.open({
+                type: 1,
+                content: `<div style="padding: 20px;">是否退出</div>`,
+                btn: ["确定退出", "暂不退出"],
+                yes: function (index, layero) {
+                    location.href = "login.html";
+                },
+                btn2: function (index, layero) {
+                    //return false 开启该代码可禁止点击该按钮关闭
+                }
+            });
+        });
+        //显示修改密码弹框
+        $('#parentChangePassword').click(function () {
+            $('.dialogMenu').css('display', 'none');
+            layer.open({
+                type: 1,
+                title: '修改密码',
+                content: $('#dialogChangePassword').html(), //这里content是一个普通的String
+                btn: ['确定', '取消'],
+                success: function (index, layero) {
+                    form.render();
+                    $('#dialogChangePasswordForm').submit(function (e) {
+                        console.log(formArray2Data($(this).serializeArray()));
+                        return false;
+                    });
+                },
+                yes: function (index, layero) {
+                    $('#dialogChangePasswordForm').submit();
+                },
+                btn2: function (index, layero) {
+                    //return false 开启该代码可禁止点击该按钮关闭
+                }
+            });
+        });
+    }
+
+
+
+    /**
+     *格式化菜单数据
+     */
+    function formatMenus() {
+        findChildMenus(-1);
+        window.element.render('nav');
+    }
+
+    /**
+     * 根据id查找下级菜单
+     * @param id
+     */
+    function findChildMenus(id) {
+        if (id == -1) {
+            menuArray.forEach(function (item) {
+                if (item.pid == id) {
+                    $('.leftMenu ul')
+                        .append('<li menu-id="' + item.id + '" class="layui-nav-item"><a href="' + item.url + '">' + item.name + '</a></li>')
+                    findChildMenus(item.id);
+                }
+            });
+
+        } else {
+            menuArray.forEach(function (item) {
+                if (item.pid == id) {
+                    $('[menu-id="' + item.pid + '"]>a').removeAttr('href');
+                    if (!$('[menu-id="' + item.pid + '"]').children('dl')[0]) {
+                        $('[menu-id="' + item.pid + '"]').append('<dl class="layui-nav-child"></dl>')
+                    }
+                    $('[menu-id="' + item.pid + '"] dl')
+                        .append('<dd menu-id="' + item.id + '"><a href="' + item.url + '">' + item.name + '</a></dd>');
+                    findChildMenus(item.id);
+                }
+            });
+        }
+
+    }
+
+
+</script>
